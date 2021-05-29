@@ -28,7 +28,7 @@
 <body>
   <fieldset>
     <legend>Error Calculator</legend>
-    <input type="number" name="first-num" id="first-num" />
+    <input type="text" name="first-num" id="first-num" />
     <select name="operator" id="operator">
       <option>+</option>
       <option>-</option>
@@ -55,18 +55,166 @@
     <button>Trigger a Global Error</button>
   </section>
 
+
+  <script src="https://cdn.trackjs.com/agent/v3/latest/t.js"></script>
   <script>
+    window.TrackJS && TrackJS.install({ 
+      token: "55b6b70246fe41518512969249b58483",
+      application: "lab9"
+      // for more configuration options, see https://docs.trackjs.com
+    });
+
+    TrackJS.track('Testing TrackJS!');
+                        
+  </script>
+                          
+  <script>
+    class DivByZeroError extends Error {
+      constructor(msg){
+        super(msg);
+        this.name = "DivideByZeroError";
+      }
+    }
+    
+    function deepest(){
+      console.trace();
+    }
+
+    function deeper() {
+      deepest();
+    }
+
+    function deep(){
+      deeper();
+    }
+
+    let errorReporter = function errReporter(errMessage, url){
+    
+      /* form payload string with error data */
+      var payload = "url=" + url;
+      payload += "&message=" + errMessage;
+  
+      /* submit error message  */
+      console.log("Error encountered, can't be fixed");
+  
+      alert("JavaScript Error Encountered.  \nSite Administrators have been notified.");
+  
+      return true; // suppress normal JS errors since we handled
+    }
+
+    let errorRegisterHandler = function () {
+      //console.log("error happened");
+      if (window.onerror) // then one exists
+      {
+       var oldError = window.onerror;
+       
+       var newErrorHandler = function (errorMessage,url,lineNumber) { 
+         errorReporter(errorMessage,url); 
+         oldError(errorMessage,url); 
+        }
+       
+        window.onerror = newErrorHandler;
+      }
+    else
+      window.onerror = errorReporter;
+    }
+
+    errorRegisterHandler();
+
+
     let calculateBtn = document.querySelector('#calculate');
     calculateBtn.addEventListener('click', () => {
-      let output = document.querySelector('output');
-      let firstNum = document.querySelector('#first-num').value;
-      let secondNum = document.querySelector('#second-num').value;
-      let operator = document.querySelector('#operator').value;
-      output.innerHTML = eval(`${firstNum} ${operator} ${secondNum}`);
+      try {
+        let output = document.querySelector('output');
+        let firstNum = document.querySelector('#first-num').value;
+        let secondNum = document.querySelector('#second-num').value;
+        let operator = document.querySelector('#operator').value;
+        //let extra = document.querySelector("#extra").value;
+
+        if (secondNum == 0 && operator == "/"){
+          throw new DivByZeroError("Can't divide by 0");
+        }
+
+        output.innerHTML = eval(`${firstNum} ${operator} ${secondNum}`);
+      } catch (err) {
+        alert("error has occured: " + err);
+      } finally {
+        console.log("calculation finished");
+      }
     });
 
     let errorBtns = Array.from(document.querySelectorAll('#error-btns > button'));
-    // TODO - Make buttons functional
+    let consoleLogBtn = errorBtns[0];
+    let consoleErrBtn = errorBtns[1];
+    let consoleDirBtn = errorBtns[2];
+    let consoleDirXMLBtn = errorBtns[3];
+    let consoleGroupStartBtn = errorBtns[4];
+    let consoleGroupEndBtn = errorBtns[5];
+    let consoleTblBtn = errorBtns[6];
+    let startTimer = errorBtns[7];
+    let endTimer = errorBtns[8];
+    let consoleTrcBtn = errorBtns[9];
+    let globalErrBtn = errorBtns[10];
+
+    consoleLogBtn.addEventListener("click", () => {
+      console.log("console log");
+    });
+
+    consoleErrBtn.addEventListener("click", () => {
+      console.error("console error");
+    });
+
+    consoleDirBtn.addEventListener("click", () => {
+      console.dir(consoleDirBtn);
+    });
+
+    consoleDirXMLBtn.addEventListener("click", () => {
+      let docBody = document.querySelector("body");
+      console.dirxml(docBody);
+    })
+
+    let groupLbl = "Log Group"
+    consoleGroupStartBtn.addEventListener("click", () => {
+      console.group(groupLbl);
+    });
+
+    consoleGroupEndBtn.addEventListener("click", () => {
+      console.groupEnd(groupLbl);
+    });
+
+    consoleTblBtn.addEventListener("click", () => {
+      let table = [
+        {id: 0, first: "Derek", last: "Hwang"},
+        {id: 1, first: "Michael", last: "Shao"}
+      ];
+
+      console.table(table);
+    })
+
+    startTimer.addEventListener("click", () => {
+      console.log("Timer Started");
+      console.time();
+    })
+
+    endTimer.addEventListener("click", () => {
+      console.timeEnd();
+      console.log("Timer Ended");
+    });
+
+    consoleTrcBtn.addEventListener("click", () => {
+      console.log("Console Trace");
+      deep();
+    });
+
+    globalErrBtn.addEventListener("click", () => {
+      lmaoErrorFunction();
+      console.error("Global Error");
+    });
+
+
+
+
+
   </script>
 </body>
 </html>
